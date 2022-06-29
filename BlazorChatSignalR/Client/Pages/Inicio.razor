@@ -1,4 +1,4 @@
-﻿@page "/login"
+﻿@page "/"
 @inject HttpClient http
 @using System.Net.Http
 @using System.Net.Http.Json
@@ -11,25 +11,33 @@
 @inject HttpClient Http
 
 <PageTitle>SignalR Chat</PageTitle>
-<h3>SignalR Chat</h3>
-
-
+<h2>Mar Del Chat</h2>
+<br />
 <h3>Login</h3>
 
 @if (!IsConnected)
 {
 
-    <div>
-        <input type="text" @bind="email" placeholder="mail">
-    </div>    
-    <div>
-        <input type="text" @bind="password"  placeholder="pass">
-    </div>    
+     <div class="mb-3">
+        <label for="exampleInputEmail1" class="form-label">Email address</label>
+        <input @bind="email" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+        <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+    </div>   
+    <div class="mb-3">
+        <label for="exampleInputPassword1" class="form-label">Password</label>
+        <input @bind="password" type="text" class="form-control" id="exampleInputPassword1">
+     </div>   
  @*   <div>
         <button class="btn btn-primary form-control-append" @onclick="LoginUsuario">
             Connect
         </button>
     </div>*@
+    <br />
+    <div class="mb-3">
+
+        <label for="exampleInputUserName" class="form-label">Name</label>
+        <input @bind="username" class="form-control" >
+     </div>
     <div>
         <button class="btn btn-primary form-control-append" @onclick="Connect">
             Ir al chat
@@ -57,7 +65,7 @@ else
 
 
 @code {
-   private HubConnection? hubConnection;
+    private HubConnection? hubConnection;
     private string messages = string.Empty;
     private string username = string.Empty;
     private string message = string.Empty;
@@ -74,11 +82,17 @@ else
     //    await Http.PostAsJsonAsync("api/Login", postbody);
     //}
 
-     private async Task Connect()
+    private async Task Connect()
     {
-         var postbody = new UserRequest() { Email = email, Password = password };
+        var postbody = new UserRequest() {Nombre = username, Email = email, Password = password };
 
-        await Http.PostAsJsonAsync("api/Login", postbody);
+        var Response = await Http.PostAsJsonAsync("api/Login", postbody);
+        
+        if (!Response.IsSuccessStatusCode)
+        {
+          throw new ArgumentException("something bad happended");
+        }
+
         hubConnection = new HubConnectionBuilder()
             .WithUrl(NavigationManager.ToAbsoluteUri($"/chathub?username={username}"))
             .Build();

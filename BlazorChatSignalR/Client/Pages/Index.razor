@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/registro"
 @using BlazorChatSignalR.Client.Entity
 
 
@@ -9,31 +9,14 @@
 
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
-@implements IAsyncDisposable
+
 @inject HttpClient Http
 
 <PageTitle>SignalR Chat</PageTitle>
-<h3>SignalR Chat</h3>
-
-@if (!IsConnected)
-{
-
-  @*  <div>
-        <input type="text" @bind="username" placeholder="user">
-    </div>
-    <div>
-        <input type="text" @bind="email" placeholder="mail">
-    </div>
-    <div>
-        <input type="text" @bind="password"  placeholder="pass">
-    </div>
-    <div>
-        <button class="btn btn-primary form-control-append" @onclick="AgregarUsuario">
-            Connect
-        </button>
-    </div>*@
+<h3>Registro</h3>
 
 
+<br />
 
     <div class="mb-3">
 
@@ -50,101 +33,28 @@
         <input @bind="password" type="text" class="form-control" id="exampleInputPassword1">
      </div>
 
-  @*  <div class="mb-3">    
+
+    <div class="mb-3">    
         <button class="btn btn-primary form-control-append" @onclick="AgregarUsuario">
             Connect
         </button>
     </div>
-*@
-    <div class="mb-3">    
-        <button class="btn btn-primary form-control-append" @onclick="Connect">
-            Connect
-        </button>
-    </div>
-}
-else
-{
-    <textarea style="width: 100%; height: 400px;" @ref="TextAreaRef">
-        @messages
-            </textarea>
-    <div class="input-group">
-        <input @bind-value="message"
-           @bind-value:event="oninput"
-           @onkeyup="HandleInput"
-           class="form-control">
-        <button class="btn btn-primary form-group-append"
-            @onclick="Send"
-            disabled="@(!IsConnected)">
-            Send
-        </button>
-    </div>
-}
 
 
 
 @code {
-    private HubConnection? hubConnection;
-    private string messages = string.Empty;
     private string username = string.Empty;
-    private string message = string.Empty;
     private string email = string.Empty;
     private string password = string.Empty;
 
-    ElementReference TextAreaRef;
 
 
-    //private async Task AgregarUsuario()
-    //{
-    //    var postbody = new UserRequest() { Nombre = username, Email = email, Password = password };
-
-    //    await Http.PostAsJsonAsync("api/Login/Registro", postbody);
-
-    //}
-    private async Task Connect()
+    private async Task AgregarUsuario()
     {
-
-          var postbody = new UserRequest() { Nombre = username, Email = email, Password = password };
+        var postbody = new UserRequest() { Nombre = username, Email = email, Password = password };
 
         await Http.PostAsJsonAsync("api/Login/Registro", postbody);
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri($"/chathub?username={username}"))
-            .Build();
 
-        hubConnection.On<string, string>("GetThatMessageDude", (user, message) =>
-        {
-            var msg = $"{(string.IsNullOrEmpty(user) ? "" : user + ": ")}{message}";
-            messages += msg + "\n";
-            JSRuntime.InvokeVoidAsync("scrollToBottom", TextAreaRef);
-            StateHasChanged();
-        });
-
-        await hubConnection.StartAsync();
     }
-
-    private async Task Send()
-    {
-        if (hubConnection != null)
-        {
-            await hubConnection.SendAsync("AddMessageToChat", username, message);
-            message = string.Empty;
-        }
-    }
-
-    private async Task HandleInput(KeyboardEventArgs args)
-    {
-        if (args.Key.Equals("Enter"))
-        {
-            await Send();
-        }
-    }
-
-    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
-
-    public async ValueTask DisposeAsync()
-    {
-        if (hubConnection != null)
-        {
-            await hubConnection.DisposeAsync();
-        }
-    }
+   
 }
